@@ -2,13 +2,14 @@ name: CI (PHP Lint Only)
 
 on:
   push:
-    branches: [ "**" ]   # roda em qualquer branch
+    branches: [ "main" ]
   pull_request:
-    branches: [ "**" ]
+    branches: [ "main" ]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,11 +20,28 @@ jobs:
           php-version: '8.2'
           coverage: none
 
-      # Cache do Composer para builds mais rápidos
       - name: Cache Composer
         uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            ${{ ru
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: PHP syntax lint (php -l)
+        run: |
+          echo "Procurando arquivos PHP para validar sintaxe..."
+          find . -type f -name "*.php" -not -path "./vendor/*" -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: Code style (PHPCS PSR-12)
+        run: |
+          if [ -f "vendor/bin/phpcs" ]; then
+            vendor/bin/phpcs --standard=PSR12 --extensions=php --ignore=vendor .
+          else
+            echo "PHPCS não encontrado. Adicione 'squizlabs/php_codesniffer' em require-dev no composer.json"
+            exit 1
+          fi
