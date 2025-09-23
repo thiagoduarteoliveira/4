@@ -1,4 +1,4 @@
-name: CI (Composer only)
+name: CI (PHP Lint & Tests) + Deploy Hook
 
 on:
   push:
@@ -7,14 +7,49 @@ on:
     branches: [ "main" ]
 
 jobs:
-  composer:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+          extensions: mbstring, pdo, pdo_pgsql
           tools: composer
           coverage: none
+
       - name: Composer install
-        run: composer install --prefer-dist --no-interaction --no-progress || true
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Lint (PHPCS) if available
+        run: |
+          if [ -x "vendor/bin/phpcs" ]; then
+            vendor/bin/phpcs --standard=PSR12 src public
+          else
+            echo "PHPCS não encontrado, pulando lint."
+          fi
+
+      - name: Run tests (PHPUnit) if available
+        run: |
+          if [ -x "vendor/bin/phpunit" ]; then
+            vendor/bin/phpunit --testdox
+          else
+            echo "PHPUnit não encontrado, pulando testes."
+          fi
+
+  deploy:
+    needs: build-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Render Deploy Hook (if set)
+        env:
+          RENDER_DEPLOY_HOOK_PROD: ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK_PROD" ]; then
+            curl -fsS -X POST "$RENDER_DEPLOY_HOOK_PROD"
+          else
+            echo "RENDER_DEPLOY_HOOK_PROD não definido. Deploy manual no Render."
+          fi
