@@ -11,7 +11,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $u = trim($_POST['username'] ?? '');
     $p = trim($_POST['password'] ?? '');
     if ($u !== '' && $p !== '' && Auth::login($u, $p)) {
-        header('Location: /admin/patients');
+        header('Location: /admin/patients.php');
         exit;
     }
     $error = 'Usuário ou senha inválidos.';
