@@ -6,8 +6,9 @@ use App\Auth;
 use App\Db;
 
 Auth::requireLogin();
+
 $pdo = Db::conn();
-$st = $pdo->query('SELECT id, name, birth_date, phone, cellphone, email FROM patients ORDER BY id DESC LIMIT 100');
+$st  = $pdo->query('SELECT id, name, birth_date, phone, cellphone, email FROM patients ORDER BY id DESC LIMIT 100');
 $rows = $st->fetchAll();
 ?>
 <!doctype html>
@@ -25,7 +26,7 @@ a.btn{background:#0d6efd;color:#fff;text-decoration:none;padding:8px 12px;border
 </style>
 <div class="header">
   <h1>Pacientes <span class="badge"><?= count($rows) ?></span></h1>
-  <div><a class="btn" href="/admin/logout">Sair</a></div>
+  <div><a class="btn" href="/admin/logout.php">Sair</a></div>
 </div>
 
 <table class="table">
@@ -33,15 +34,15 @@ a.btn{background:#0d6efd;color:#fff;text-decoration:none;padding:8px 12px;border
     <tr><th>ID</th><th>Nome</th><th>Nascimento</th><th>Telefone</th><th>Celular</th><th>E-mail</th></tr>
   </thead>
   <tbody>
-    <?php foreach ($rows as $r): ?>
-      <tr>
-        <td><?= (int)$r['id'] ?></td>
-        <td><?= htmlspecialchars($r['name'] ?? '', ENT_QUOTES) ?></td>
-        <td><?= htmlspecialchars($r['birth_date'] ?? '', ENT_QUOTES) ?></td>
-        <td><?= htmlspecialchars($r['phone'] ?? '', ENT_QUOTES) ?></td>
-        <td><?= htmlspecialchars($r['cellphone'] ?? '', ENT_QUOTES) ?></td>
-        <td><?= htmlspecialchars($r['email'] ?? '', ENT_QUOTES) ?></td>
-      </tr>
-    <?php endforeach; ?>
+  <?php foreach ($rows as $r): ?>
+    <tr>
+      <td><?= (int)$r['id'] ?></td>
+      <td><?= htmlspecialchars($r['name'] ?? '', ENT_QUOTES) ?></td>
+      <td><?= htmlspecialchars($r['birth_date'] ?? '', ENT_QUOTES) ?></td>
+      <td><?= htmlspecialchars($r['phone'] ?? '', ENT_QUOTES) ?></td>
+      <td><?= htmlspecialchars($r['cellphone'] ?? '', ENT_QUOTES) ?></td>
+      <td><?= htmlspecialchars($r['email'] ?? '', ENT_QUOTES) ?></td>
+    </tr>
+  <?php endforeach; ?>
   </tbody>
 </table>
